@@ -1,4 +1,4 @@
-# Modular Medical Imaging Agent for Spatial Reasoning in CT Scans
+# A Modular Medical Imaging Agent for Reliable and Auditable Spatial Reasoning in CT Scans
 
 Code for the MICCAI Agent Workshop submission:
 
