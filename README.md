@@ -1,17 +1,10 @@
-# A Modular Medical Imaging Agent for Reliable and Auditable Spatial Reasoning in CT Scans
+# A Modular Medical Imaging Agent for Reliable and Auditable Spatial Relation Verification in CT Scans
 
 Code for the MICCAI Agent Workshop submission:
 
-**A Modular Medical Imaging Agent for Reliable and Auditable Spatial Reasoning in CT Scans**
+**A Modular Medical Imaging Agent for Reliable and Auditable Spatial Relation Verification in CT Scans**
 
 This repository implements a modular medical imaging agent for binary spatial relation verification in axial CT slices.
-
-Instead of asking a vision-language model (VLM) to directly answer spatial questions, the system decomposes the task into explicit and auditable stages:
-
-1. language parsing,
-2. anatomical object detection,
-3. deterministic geometric verification,
-4. stage-wise audit logging.
 
 Given a CT slice and a question such as:
 
@@ -19,23 +12,25 @@ Given a CT slice and a question such as:
 Is the liver left of the spleen?
 ```
 
-the agent extracts a structured relation tuple, localizes the queried anatomical structures with a YOLO-based detector, and computes the final binary answer from object center coordinates.
+the system extracts a structured spatial query, localizes the queried anatomical structures with a YOLO-based detector, and verifies the spatial relation using deterministic geometric rules.
 
-The final spatial decision is deterministic and does not rely on a language model directly predicting the spatial truth value.
+The final spatial decision is not directly predicted by a vision-language model. Instead, the language model is used for language/query handling, while the final answer is computed from detected object centers.
 
 ---
 
 ## Overview
 
-The repository supports three main evaluation settings:
+The hybrid agent decomposes spatial medical image QA into explicit and auditable stages:
 
-| Setting | Description |
-|---|---|
-| Direct VLM baseline | MedGemma or Qwen2-VL receives the image and prompt directly and outputs `0` or `1`. |
-| Hybrid agent | The same external prompt is passed to the agent. The VLM is used for language/query handling, while YOLO + geometry computes the final answer. |
-| YOLO + geometry | Gold structured queries are provided directly to evaluate the perception-and-geometry core. |
+1. question extraction,
+2. task routing,
+3. language parsing / query extraction,
+4. ontology matching,
+5. YOLO-based anatomical localization,
+6. deterministic geometric verification,
+7. binary answer formatting and audit logging.
 
-All VLM-based systems use the same external prompt:
+The external prompt follows the same binary protocol as the direct VLM baselines:
 
 ```text
 This is a 2D axial CT slice.
@@ -49,213 +44,448 @@ Answer the question with exactly one character:
 Do not output any explanation.
 ```
 
-The key idea is that the external interface remains comparable to a conventional VLM, while the hybrid agent internally performs explicit tool-based reasoning.
+The key idea is that the external interface remains comparable to a conventional VLM, while the hybrid agent internally performs explicit tool-based verification.
 
 ---
 
-## Pipeline
-
-The spatial verification pathway consists of four stages:
-
-### 1. Question parsing
-
-The input question is converted into a structured relation tuple.
-
-Example:
+## Repository structure
 
 ```text
-Is the liver left of the spleen?
+.
+├── README.md
+├── requirements.txt
+├── requirements-vlm.txt
+├── .gitignore
+├── configs/
+│   ├── data.example.yaml
+│   └── classes.example.txt
+├── code/
+│   ├── hybrid_agent/
+│   │   ├── agent/
+│   │   ├── language_parsing/
+│   │   ├── perception/
+│   │   ├── tasks/
+│   │   ├── utils/
+│   │   ├── agent_eval.py
+│   │   └── main.py
+│   ├── evaluation/
+│   │   ├── final_evaluate_agent.py
+│   │   └── final_evaluate_agent_failure_attribution.py
+│   └── direct_vlm/
+│       └── README.md
+├── training/
+│   └── README.md
+└── docs/
+    ├── data_format.md
+    └── evaluation.md
 ```
 
-becomes:
+---
 
-```json
-{
-  "entity_a": "liver",
-  "relation": "left of",
-  "entity_b": "spleen"
-}
-```
+## What is not included
 
-### 2. Ontology matching
-
-Extracted entity names are mapped to the anatomical class names used by the detector.
-
-### 3. Anatomical localization
-
-A YOLO-based detector localizes the queried anatomical structures in the CT slice.
-
-For each queried class, the highest-confidence detection is selected.
-
-### 4. Deterministic geometric verification
-
-Spatial relations are evaluated from object center coordinates.
-
-For example:
+The following files are not included in this repository:
 
 ```text
-A is left of B  ->  center_x(A) < center_x(B)
-A is above B    ->  center_y(A) < center_y(B)
+data/images/
+data/labels/
+data/relations/
+models/
+results/
+runs/
+logs/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
 ```
 
-The final answer is computed deterministically from these coordinates.
+In particular, the repository does not include:
+
+- original medical images,
+- segmentation masks,
+- YOLO label files derived from medical data,
+- benchmark ground-truth files,
+- trained detector checkpoints,
+- VLM checkpoints,
+- generated prediction files,
+- logs or cluster-specific outputs.
+
+These files must be provided locally by the user.
 
 ---
 
 ## Installation
 
-We recommend Python 3.10+ and a CUDA-capable GPU.
+We recommend Python 3.10+ and a CUDA-capable GPU for full inference.
+
+Clone the repository:
 
 ```bash
-git clone https://github.com/<your-username>/<your-repo>.git
-cd <your-repo>
+git clone https://github.com/<anonymous>/<repo-name>.git
+cd <repo-name>
+```
 
+Create and activate a virtual environment:
+
+```bash
 python -m venv .venv
 source .venv/bin/activate
+```
 
+Install the hybrid-agent dependencies:
+
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 ```
 
-If no `requirements.txt` is available yet, install the main dependencies manually:
+Set the Python path:
 
 ```bash
-pip install torch torchvision ultralytics transformers vllm langchain spacy tqdm numpy opencv-python pyyaml
+export PYTHONPATH=$PWD/code:$PYTHONPATH
+```
+
+Optional import check:
+
+```bash
+python - <<'PY'
+import torch
+import ultralytics
+import spacy
+import transformers
+import cv2
+import numpy
+import pandas
+import yaml
+import sklearn
+
+print("All core imports OK")
+print("torch:", torch.__version__)
+print("cuda available:", torch.cuda.is_available())
+PY
 ```
 
 ---
 
-## Data
+## Required local files
 
-The evaluation uses the held-out MIRP spatial QA benchmark.
+Before running inference or evaluation, provide the following local files.
 
-Expected data layout:
-
-```text
-data/
-  images/
-    test/
-      *.png
-  annotations/
-    organs_gt.json
-  yolo/
-    data.yaml
-```
-
-Segmentation masks are used only to derive bounding-box supervision and reference locations.  
-They are not used during inference.
-
----
-
-## Pretrained Models
-
-The following model files are required:
-
-| Component | File / model |
+| Variable | Description |
 |---|---|
-| YOLO detector | `models/yolo/best.pt` |
-| MedGemma | local or Hugging Face checkpoint |
-| Qwen2-VL | local or Hugging Face checkpoint |
+| `DATA_YAML_PATH` | YOLO dataset configuration file with detector class names |
+| `YOLO_WEIGHTS_PATH` | trained YOLO detector checkpoint |
+| `ORG_GT_PATH` | ground-truth spatial QA / organ relation file |
+| `IMG_DIR` | directory containing test CT slice images |
+| `OUTPUT_DIR` | directory where prediction and evaluation outputs will be written |
+| `LOCAL_LLM_MODEL` | local or Hugging Face model identifier for the language component |
+| `JOB_ID` | run identifier used in output filenames |
 
-Place detector weights under:
+An example YOLO configuration is provided in:
 
 ```text
-models/yolo/best.pt
+configs/data.example.yaml
 ```
 
-### MedGemma vLLM compatibility note
+This file contains the detector class ontology and relative dataset structure. Replace the `path` field with the local dataset root before use.
 
-For MedGemma, the local `config.json` may require the missing sliding-window configuration field expected by the vLLM backend.
+---
 
-This affects only backend compatibility.  
-Model weights, prompts, decoding settings, and evaluation data remain unchanged.
+## Configuration
 
-Example:
+Set the required paths before running the agent:
 
-```json
-"sliding_window_pattern": 6,
-"_sliding_window_pattern": 6
+```bash
+export PROJECT_ROOT=$PWD
+
+export DATA_YAML_PATH=/path/to/data.yaml
+export YOLO_WEIGHTS_PATH=/path/to/best.pt
+
+export ORG_GT_PATH=/path/to/organs_gt.json
+export IMG_DIR=/path/to/test/images
+export OUTPUT_DIR=/path/to/output
+
+export LOCAL_LLM_MODEL=google/medgemma-4b-it
+export JOB_ID=run
+```
+
+Example `data.yaml` layout:
+
+```yaml
+path: /path/to/yolo_dataset
+
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: aorta
+  1: brachiocephalic trunk
+  2: colon
+  3: duodenum
+  4: esophagus
+  5: gallbladder
+  6: heart
+  7: inferior vena cava
+  8: left atrial appendage
+  9: left autochthon
+  10: left brachiocephalic vein
+  11: left clavicula
+  12: left femur
+  13: left gluteus maximus
+  14: left gluteus medius
+  15: left gluteus minimus
+  16: left hip
+  17: left humerus
+  18: left iliac artery
+  19: left iliac vena
+  20: left iliopsoas
+  21: left kidney
+  22: left kidney cyst
+  23: left lung lower lobe
+  24: left lung upper lobe
+  25: left rib
+  26: left scapula
+  27: liver
+  28: pancreas
+  29: portal vein and splenic vein
+  30: prostate
+  31: pulmonary vein
+  32: right adrenal gland
+  33: right autochthon
+  34: right clavicula
+  35: right femur
+  36: right gluteus maximus
+  37: right gluteus medius
+  38: right gluteus minimus
+  39: right hip
+  40: right humerus
+  41: right iliac artery
+  42: right iliac vena
+  43: right iliopsoas
+  44: right kidney
+  45: right kidney cyst
+  46: right lung lower lobe
+  47: right lung middle lobe
+  48: right lung upper lobe
+  49: right scapula
+  50: sacrum
+  51: skull
+  52: small bowel
+  53: spinal cord
+  54: spleen
+  55: sternum
+  56: stomach
+  57: superior vena cava
+  58: trachea
+  59: urinary bladder
+  60: vertebrae
 ```
 
 ---
 
-## Running the Hybrid Agent
+## Running the hybrid agent
 
-Run a single spatial query:
+### Single-case demo
+
+The script `code/hybrid_agent/main.py` provides a lightweight single-case demo.
 
 ```bash
-python hybrid_agent/main.py \
-  --image data/images/test/example.png \
-  --question "Is the liver left of the spleen?" \
-  --yolo_weights models/yolo/best.pt
+export IMAGE_PATH=/path/to/example_image.png
+export QUESTION="Is the liver left of the spleen?"
+export OUTPUT_DIR=/path/to/output
+
+python code/hybrid_agent/main.py
 ```
 
-Example output:
+This script is intended for quick testing and debugging. It is not used to compute the paper metrics.
 
-```json
-{
-  "answer": "1",
-  "parsed_query": {
-    "entity_a": "liver",
-    "relation": "left of",
-    "entity_b": "spleen"
-  },
-  "audit": {
-    "question_extraction": "success",
-    "routing": "spatial",
-    "ontology_matching": "success",
-    "detection": "success",
-    "geometry": "center_x(liver) < center_x(spleen)"
-  }
-}
+---
+
+### Benchmark inference
+
+The script `code/hybrid_agent/agent_eval.py` runs the hybrid agent on the spatial QA benchmark.
+
+```bash
+export PROJECT_ROOT=$PWD
+
+export DATA_YAML_PATH=/path/to/data.yaml
+export YOLO_WEIGHTS_PATH=/path/to/best.pt
+
+export ORG_GT_PATH=/path/to/organs_gt.json
+export IMG_DIR=/path/to/test/images
+export OUTPUT_DIR=/path/to/output
+
+export LOCAL_LLM_MODEL=google/medgemma-4b-it
+export JOB_ID=run
+
+python code/hybrid_agent/agent_eval.py
+```
+
+Expected output files:
+
+```text
+agent_spatial_predictions_<JOB_ID>.jsonl
+agent_spatial_predictions_<JOB_ID>.json
+agent_spatial_summary_<JOB_ID>.json
+agent_spatial_errors_<JOB_ID>.json
 ```
 
 ---
 
 ## Evaluation
 
-### 1. Direct VLM baselines
+After running hybrid-agent inference, compute the final metrics:
 
 ```bash
-python eval/run_vlm_baseline.py \
-  --model_path /path/to/model \
-  --data_path data/ \
-  --output_root results/vlm_baselines \
-  --batch_size 4
+export PROJECT_ROOT=$PWD
+export JOB_ID=run
+
+export ORG_GT_PATH=/path/to/organs_gt.json
+export IMG_DIR=/path/to/test/images
+export PREDICTIONS_JSONL=/path/to/output/agent_spatial_predictions_<JOB_ID>.jsonl
+export OUTPUT_DIR=/path/to/output
+
+python code/evaluation/final_evaluate_agent.py
 ```
 
-This evaluates a VLM end-to-end:
+This computes:
+
+- strict accuracy,
+- valid-only accuracy,
+- precision,
+- recall,
+- F1,
+- invalid outputs,
+- wrong cases.
+
+Invalid, missing, failed, or non-binary outputs are counted as incorrect under strict evaluation.
+
+---
+
+## Failure attribution
+
+The hybrid agent stores intermediate information for each case, enabling stage-wise error analysis.
+
+Run:
+
+```bash
+export PROJECT_ROOT=$PWD
+export JOB_ID=run
+
+export ORG_GT_PATH=/path/to/organs_gt.json
+export IMG_DIR=/path/to/test/images
+export PREDICTIONS_JSONL=/path/to/output/agent_spatial_predictions_<JOB_ID>.jsonl
+export OUTPUT_DIR=/path/to/output
+
+python code/evaluation/final_evaluate_agent_failure_attribution.py
+```
+
+Failure stages:
+
+| Failure stage | Description |
+|---|---|
+| Question extraction | The full prompt could not be converted into the core spatial question. |
+| Routing | The query was routed to the wrong task pathway. |
+| Parsing / query extraction | The wrong entity or relation was extracted. |
+| Ontology matching | An extracted entity could not be mapped to a detector class. |
+| Missing detection | At least one queried anatomical structure was not detected. |
+| Imprecise localization | A detected center was too imprecise for the relation. |
+| Geometry ambiguity | The spatial configuration was borderline or ambiguous. |
+| Formatting/runtime | The system produced an invalid output or failed during execution. |
+
+Failure attribution assigns each wrong or invalid prediction to the earliest identifiable failing stage.
+
+---
+
+## Output directories
+
+Generated files are written locally and are excluded from version control.
+
+Typical local output layout:
 
 ```text
-CT image + prompt -> 0/1 answer
+results/
+  inference/
+    agent_eval/
+      agent_spatial_predictions_<JOB_ID>.jsonl
+      agent_spatial_predictions_<JOB_ID>.json
+      agent_spatial_summary_<JOB_ID>.json
+      agent_spatial_errors_<JOB_ID>.json
+
+  evaluation/
+    agent_eval_metrics_<JOB_ID>.json
+    agent_failure_attribution_<JOB_ID>.json
+
+runs/
+  detect/
+    train*/
+      weights/
+        best.pt
+
+logs/
+  *.out
+  *.err
 ```
 
-### 2. Hybrid agent evaluation
+These folders are ignored by `.gitignore`.
+
+---
+
+## Direct VLM baselines
+
+Direct VLM baselines are evaluated in a separate environment because they may require additional inference backends such as vLLM.
+
+Install the VLM environment separately:
 
 ```bash
-python eval/run_hybrid_agent.py \
-  --data_path data/ \
-  --yolo_weights models/yolo/best.pt \
-  --language_model /path/to/model \
-  --output_root results/hybrid_agent
+pip install -r requirements-vlm.txt
 ```
 
-This evaluates the full agent:
+Direct VLM scripts are located in:
 
 ```text
-CT image + same prompt -> parsing -> YOLO -> geometry -> 0/1 answer
+code/direct_vlm/
 ```
 
-### 3. YOLO + geometry core evaluation
+The direct baselines use the same external binary prompt protocol as the hybrid agent.
+
+The final evaluated direct baselines are:
+
+- MedGemma direct,
+- Qwen2-VL direct.
+
+---
+
+## YOLO detector training utilities
+
+Optional detector data-preparation utilities are provided in:
+
+```text
+training/
+```
+
+These scripts were used to prepare YOLO-style detector training data from segmentation-derived annotations.
+
+The original medical images, segmentation masks, labels, and trained detector checkpoints are not included.
+
+The best detector configuration used standard YOLOv8 training settings without a custom hyperparameter YAML file. Exploratory custom hyperparameter files are not included because they were not used for the final reported configuration.
+
+Example YOLO training command:
 
 ```bash
-python eval/run_yolo_geometry.py \
-  --data_path data/ \
-  --yolo_weights models/yolo/best.pt \
-  --output_root results/yolo_geometry
+yolo detect train \
+  model=yolov8m.pt \
+  data=/path/to/data.yaml \
+  imgsz=512 \
+  epochs=500 \
+  batch=128 \
+  freeze=2
 ```
 
-This evaluates the perception-and-geometry core using gold structured queries.
+Adjust the model size, batch size, number of epochs, and hardware-specific settings as needed.
 
 ---
 
@@ -265,126 +495,25 @@ Main results under the unified prompt protocol:
 
 | System | Accuracy | F1 | Invalid |
 |---|---:|---:|---:|
-| MedGemma direct | `<fill>` | `<fill>` | `<fill>` |
-| MedGemma + hybrid agent | `<fill>` | `<fill>` | `<fill>` |
-| Qwen2-VL direct | `<fill>` | `<fill>` | `<fill>` |
-| Qwen2-VL + hybrid agent | `<fill>` | `<fill>` | `<fill>` |
-| YOLO + geometry | `<fill>` | `<fill>` | -- |
+| MedGemma direct | 51.8 | 67.2 | 0.0 |
+| MedGemma + hybrid agent | 91.6 | 91.3 | 0.0 |
+| Qwen2-VL direct | 51.6 | 56.8 | 0.0 |
+| Qwen2-VL + hybrid agent | **94.1** | **94.2** | 0.0 |
 
-Strict evaluation counts invalid, failed, or non-binary outputs as incorrect.
-
----
-
-## Failure Attribution
-
-The hybrid agent stores intermediate information for each case, enabling stage-wise error analysis.
-
-| Failure stage | Description |
-|---|---|
-| Question extraction | The full prompt could not be converted into the core spatial question. |
-| Routing | The query was routed to the wrong task pathway. |
-| Parsing | The wrong entity or relation was extracted. |
-| Ontology matching | An extracted entity could not be mapped to a detector class. |
-| Missing detection | At least one queried anatomical structure was not detected. |
-| Localization | The detected center was too imprecise for the relation. |
-| Geometry | The spatial configuration was borderline or ambiguous. |
-| Formatting/runtime | The system produced an invalid output or failed during execution. |
-
-This allows failures to be localized to individual modules instead of being hidden inside a black-box model response.
+Accuracy and F1 are reported in percent. Invalid outputs are counted as incorrect under strict evaluation.
 
 ---
 
-## Training the YOLO Detector
+## Reproducibility notes
 
-To train the detector from bounding-box annotations:
-
-```bash
-python train_yolo.py \
-  --data data/yolo/data.yaml \
-  --model yolov8m.pt \
-  --epochs 500 \
-  --imgsz 512 \
-  --batch 128 \
-  --freeze 2
-```
-
-The detector is trained only on bounding boxes derived from anatomical segmentation masks.
-
-No spatial-relation labels are used for detector training.
-
----
-
-## Reproducibility Notes
-
-- All VLM baselines use the same external prompt.
-- Decoding is deterministic with `temperature=0`.
-- Invalid or non-binary outputs are counted as incorrect under strict evaluation.
+- All systems use the same external binary prompt protocol.
+- Decoding is deterministic where applicable.
 - The hybrid agent receives the same user-facing prompt as the direct VLM baselines.
 - The final spatial decision in the hybrid agent is computed from YOLO detections and deterministic geometry.
+- The language model is used for language/query handling and optional fallback parsing, not for directly predicting the spatial truth value.
 - Segmentation masks are not used during inference.
-- Patient-level separation is enforced between detector training data and the held-out test set.
-- The isolated YOLO + geometry setting is reported separately to distinguish perception-and-geometry performance from full-agent integration errors.
-
----
-
-## Repository Structure
-
-```text
-hybrid_agent/
-  agent/
-    controller.py
-    router.py
-
-  language_parsing/
-    ...
-    
-  perception/
-    yolo_model.py
-    deterministic_relations.py
-
-  tasks/
-    spatial_task.py
-    presence_task.py
-
-eval/
-  run_vlm_baseline.py
-  run_hybrid_agent.py
-  run_yolo_geometry.py
-
-models/
-  yolo/
-    best.pt
-
-data/
-  images/
-  annotations/
-  yolo/
-
-docs/
-  method_details.md
-  data_preparation.md
-  training.md
-  evaluation.md
-
-train_yolo.py
-requirements.txt
-README.md
-```
-
----
-
-## Additional Documentation
-
-Detailed documentation can be placed in:
-
-| File | Content |
-|---|---|
-| `docs/method_details.md` | Full method description and design motivation |
-| `docs/data_preparation.md` | Dataset generation, preprocessing, and patient-wise splitting |
-| `docs/training.md` | YOLO training details and hyperparameters |
-| `docs/evaluation.md` | Evaluation protocol and metric definitions |
-| `docs/legacy_experiments.md` | Additional exploratory experiments not used in the main paper |
-| `docs/hpc.md` | SLURM and cluster-specific execution notes |
+- Patient-level separation is enforced between detector training data and held-out evaluation cases.
+- Generated outputs, logs, checkpoints, and medical data are intentionally excluded from the repository.
 
 ---
 
@@ -394,7 +523,7 @@ If you use this code, please cite:
 
 ```bibtex
 @inproceedings{anonymous2026modular,
-  title={A Modular Medical Imaging Agent for Reliable and Auditable Spatial Reasoning in CT Scans},
+  title={A Modular Medical Imaging Agent for Reliable and Auditable Spatial Relation Verification in CT Scans},
   author={Anonymous},
   booktitle={MICCAI Agent Workshop},
   year={2026}
@@ -405,11 +534,12 @@ If you use this code, please cite:
 
 ## License
 
-This repository is released for research use.  
-Please check the licenses of all external datasets and pretrained models before use.
+This repository is released for research use.
+
+Please check the licenses of all external datasets, pretrained models, and medical data sources before use.
 
 ---
 
 ## Acknowledgements
 
-This work builds on open-source tools including YOLOv8, vLLM, Transformers, LangChain, and spaCy.
+This work builds on open-source tools including YOLOv8, Transformers, LangChain, spaCy, PyTorch, and vLLM.
