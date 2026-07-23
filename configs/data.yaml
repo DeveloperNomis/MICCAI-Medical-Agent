@@ -1,0 +1,71 @@
+# Example YOLO dataset configuration.
+# Replace the path with the local YOLO dataset root before training or inference.
+
+path: /path/to/yolo_dataset
+
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: aorta
+  1: brachiocephalic trunk
+  2: colon
+  3: duodenum
+  4: esophagus
+  5: gallbladder
+  6: heart
+  7: inferior vena cava
+  8: left atrial appendage
+  9: left autochthon
+  10: left brachiocephalic vein
+  11: left clavicula
+  12: left femur
+  13: left gluteus maximus
+  14: left gluteus medius
+  15: left gluteus minimus
+  16: left hip
+  17: left humerus
+  18: left iliac artery
+  19: left iliac vena
+  20: left iliopsoas
+  21: left kidney
+  22: left kidney cyst
+  23: left lung lower lobe
+  24: left lung upper lobe
+  25: left rib
+  26: left scapula
+  27: liver
+  28: pancreas
+  29: portal vein and splenic vein
+  30: prostate
+  31: pulmonary vein
+  32: right adrenal gland
+  33: right autochthon
+  34: right clavicula
+  35: right femur
+  36: right gluteus maximus
+  37: right gluteus medius
+  38: right gluteus minimus
+  39: right hip
+  40: right humerus
+  41: right iliac artery
+  42: right iliac vena
+  43: right iliopsoas
+  44: right kidney
+  45: right kidney cyst
+  46: right lung lower lobe
+  47: right lung middle lobe
+  48: right lung upper lobe
+  49: right scapula
+  50: sacrum
+  51: skull
+  52: small bowel
+  53: spinal cord
+  54: spleen
+  55: sternum
+  56: stomach
+  57: superior vena cava
+  58: trachea
+  59: urinary bladder
+  60: vertebrae

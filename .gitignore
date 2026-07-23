@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+env/
+*.egg-info/
+
+# Logs
+logs/
+slurm_log/
+*.log
+*.out
+*.err
+
+# Data
+data/
+datasets/
+images/
+labels/
+*.nii
+*.nii.gz
+*.dcm
+*.zip
+
+# Model checkpoints
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# YOLO / experiment outputs
+runs/
+wandb/
+outputs/
+predictions/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
