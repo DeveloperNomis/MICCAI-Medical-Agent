@@ -54,21 +54,35 @@ spatial-relation-verification-agent/
 │
 ├── code/
 │   ├── README.md
+│   │
 │   ├── hybrid_agent/
 │   │   ├── README.md
 │   │   ├── agent_eval.py
-│   │   └── main.py
+│   │   ├── main.py
+│   │   ├── agent/
+│   │   ├── language_parsing/
+│   │   ├── perception/
+│   │   ├── tasks/
+│   │   └── utils/
+│   │
 │   ├── evaluation/
 │   │   ├── README.md
 │   │   ├── final_evaluate_agent.py
 │   │   └── final_evaluate_agent_failure_attribution.py
+│   │
 │   └── vlm_baselines/
 │       ├── README.md
 │       ├── run_vlm_baseline.py
 │       └── evaluate_vlm_outputs.py
 │
 ├── training/
-│   └── README.md
+│   ├── README.md
+│   ├── create_dataset_structure.py
+│   ├── extend_labelsTraining.py
+│   ├── extend_labelsTraining_ClassMapping.py
+│   ├── extend_trainingData.py
+│   ├── generate_gray_yolo_IDs.py
+│   └── generate_labels.py
 │
 └── docs/
     ├── data_preparation.md
@@ -347,47 +361,31 @@ mkdir -p "$OUTPUT_DIR"
 Example Qwen2-VL run:
 
 ```bash
-python code/vlm_baselines/run_vlm_baseline.py \
-  --model_path Qwen/Qwen2-VL-7B-Instruct \
-  --image_dir "$IMAGE_DIR" \
-  --qa_file "$QA_FILE" \
-  --output_root "$OUTPUT_DIR" \
-  --model_name qwen2vl_direct \
-  --tokenizer_mode auto \
-  --temperature 0 \
-  --max_tokens 1 \
-  --dtype auto \
-  --trust_remote_code
+python code/vlm_baselines/run_vlm_baseline.py   --model_path Qwen/Qwen2-VL-7B-Instruct   --image_dir "$IMAGE_DIR"   --qa_file "$QA_FILE"   --output_root "$OUTPUT_DIR"   --model_name qwen2vl_direct   --tokenizer_mode auto   --temperature 0   --max_tokens 1   --dtype auto   --trust_remote_code
+```
+
+If Qwen2-VL does not load correctly in the local vLLM version, retry with:
+
+```bash
+--tokenizer_mode qwen_vl
 ```
 
 Example MedGemma run:
 
 ```bash
-python code/vlm_baselines/run_vlm_baseline.py \
-  --model_path google/medgemma-4b-it \
-  --image_dir "$IMAGE_DIR" \
-  --qa_file "$QA_FILE" \
-  --output_root "$OUTPUT_DIR" \
-  --model_name medgemma_direct \
-  --tokenizer_mode auto \
-  --temperature 0 \
-  --max_tokens 1 \
-  --dtype auto \
-  --trust_remote_code
+python code/vlm_baselines/run_vlm_baseline.py   --model_path google/medgemma-4b-it   --image_dir "$IMAGE_DIR"   --qa_file "$QA_FILE"   --output_root "$OUTPUT_DIR"   --model_name medgemma_direct   --tokenizer_mode auto   --temperature 0   --max_tokens 1   --dtype auto   --trust_remote_code
+```
+
+The tokenizer mode is model- and vLLM-version-dependent. Start with `--tokenizer_mode auto`. If another model requires a different tokenizer mode, processor, chat template, image input format, maximum context length, or vLLM backend option, adapt the command and, if necessary, the model-loading section in:
+
+```text
+code/vlm_baselines/run_vlm_baseline.py
 ```
 
 Evaluate direct VLM outputs:
 
 ```bash
-python code/vlm_baselines/evaluate_vlm_outputs.py \
-  --results_path "$OUTPUT_DIR" \
-  --output_dir "$OUTPUT_DIR/evaluation"
-```
-
-Tokenizer mode and vLLM options can be model-specific. For Qwen2-VL, if `--tokenizer_mode auto` does not load correctly in the local vLLM version, retry with:
-
-```bash
---tokenizer_mode qwen_vl
+python code/vlm_baselines/evaluate_vlm_outputs.py   --results_path "$OUTPUT_DIR"   --output_dir "$OUTPUT_DIR/evaluation"
 ```
 
 More details are provided in:
@@ -413,13 +411,7 @@ The best detector configuration used standard YOLOv8 training settings without a
 Example training command:
 
 ```bash
-yolo detect train \
-  model=yolov8m.pt \
-  data=/path/to/yolo_dataset/data.yaml \
-  imgsz=512 \
-  epochs=500 \
-  batch=128 \
-  freeze=2
+yolo detect train   model=yolov8m.pt   data=/path/to/yolo_dataset/data.yaml   imgsz=512   epochs=500   batch=128   freeze=2
 ```
 
 Adjust `model`, `batch`, `epochs`, and hardware-specific settings as needed.
