@@ -2,12 +2,12 @@ import json
 import yaml
 
 # Path to the YOLO dataset configuration file.
-DATASET_YAML = "/path/to/data.yaml"
+DATASET_YAML = "/path/to/data.example.yaml"
 
 # Path to the ground-truth relation file.
 ORG_GT_PATH = "/path/to/organs_gt.json"
 
-# Load YOLO class names from data.yaml.
+# Load YOLO class names from data.example.yaml.
 with open(DATASET_YAML, "r", encoding="utf-8") as f:
     data_yaml = yaml.safe_load(f)
 

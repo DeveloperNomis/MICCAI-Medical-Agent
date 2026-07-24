@@ -19,7 +19,7 @@ os.makedirs(TRAIN_LBL_DIR, exist_ok=True)
 
 # --------------------------------------------------
 # TARGET CLASSES
-# Must match the class order used in data.yaml.
+# Must match the class order used in data.example.yaml.
 # --------------------------------------------------
 
 TARGET_CLASSES = [

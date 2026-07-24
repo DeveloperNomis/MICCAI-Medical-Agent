@@ -42,7 +42,7 @@ class AgentController:
             data_yaml_path
             or os.environ.get(
                 "DATA_YAML_PATH",
-                project_root / "data/data.yaml",
+                project_root / "data/data.example.yaml",
             )
         )
 
@@ -71,7 +71,7 @@ class AgentController:
             for c in yolo_class_names
         }:
             raise ValueError(
-                "Class mismatch between data.yaml and YOLO model."
+                "Class mismatch between data.example.yaml and YOLO model."
             )
 
         # Optional LLM advisor. The backend model is loaded lazily.

@@ -40,7 +40,7 @@ def main():
 
     print(f"Found {len(class_names)} classes.")
 
-    # Save class list for data.yaml creation.
+    # Save class list for data.example.yaml creation.
     with open(f"{YOLO_ROOT}/classes.txt", "w") as f:
         for cls in class_names:
             f.write(cls + "\n")
