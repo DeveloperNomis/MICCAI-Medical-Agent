@@ -52,30 +52,50 @@ The key idea is that the external interface remains comparable to a conventional
 
 ```text
 .
+spatial-relation-verification-agent/
 ├── README.md
 ├── requirements.txt
 ├── requirements-vlm.txt
 ├── .gitignore
+│
 ├── configs/
 │   ├── data.example.yaml
 │   └── classes.example.txt
+│
 ├── code/
+│   ├── README.md
+│   │
 │   ├── hybrid_agent/
+│   │   ├── README.md
+│   │   ├── agent_eval.py
+│   │   ├── main.py
 │   │   ├── agent/
 │   │   ├── language_parsing/
 │   │   ├── perception/
 │   │   ├── tasks/
-│   │   ├── utils/
-│   │   ├── agent_eval.py
-│   │   └── main.py
+│   │   └── utils/
+│   │
 │   ├── evaluation/
+│   │   ├── README.md
 │   │   ├── final_evaluate_agent.py
 │   │   └── final_evaluate_agent_failure_attribution.py
-│   └── direct_vlm/
-│       └── README.md
+│   │
+│   └── vlm_baselines/
+│       ├── README.md
+│       ├── run_direct_vlm_baseline.py
+│       └── evaluate_direct_vlm_outputs.py
+│
 ├── training/
-│   └── README.md
+│   ├── README.md
+│   ├── create_dataset_structure.py
+│   ├── extend_labelsTraining.py
+│   ├── extend_labelsTraining_ClassMapping.py
+│   ├── extend_trainingData.py
+│   ├── generate_gray_yolo_IDs.py
+│   └── generate_labels.py
+│
 └── docs/
+    ├── data_preparation.md
     ├── data_format.md
     └── evaluation.md
 ```
@@ -114,6 +134,45 @@ In particular, the repository does not include:
 These files must be provided locally by the user.
 
 ---
+
+## Data download and preparation
+
+The spatial QA benchmark data are not included in this repository.
+
+The benchmark data can be downloaded from the official MIRP Benchmark repository:
+
+```text
+https://github.com/Wolfda95/MIRP_Benchmark
+```
+
+The MIRP Benchmark repository provides the original dataset guide, benchmark folder structure, inference code, evaluation code, and reference results.
+
+For this repository, the relevant input files are CT slice images and the corresponding binary spatial question-answer file.
+
+A typical local layout is:
+
+```text
+/path/to/MIRP_Benchmark/RQ1/
+├── images/
+│   ├── case_0001.png
+│   ├── case_0002.png
+│   └── ...
+└── qa.json
+```
+
+Set the corresponding local paths before running inference:
+
+```bash
+export ORG_GT_PATH=/path/to/MIRP_Benchmark/RQ1/qa.json
+export IMG_DIR=/path/to/MIRP_Benchmark/RQ1/images
+export OUTPUT_DIR=/path/to/output
+```
+
+More detailed instructions for preparing the local data structure, configuring paths, and preparing YOLO detector data are provided in:
+
+```text
+docs/data_preparation.md
+```
 
 ## Installation
 
@@ -190,6 +249,12 @@ configs/data.example.yaml
 ```
 
 This file contains the detector class ontology and relative dataset structure. Replace the `path` field with the local dataset root before use.
+
+For the MIRP benchmark, `ORG_GT_PATH` should point to the local `qa.json` file and `IMG_DIR` should point to the corresponding image directory, for example:
+
+```bash
+export ORG_GT_PATH=/path/to/MIRP_Benchmark/RQ1/qa.json
+export IMG_DIR=/path/to/MIRP_Benchmark/RQ1/images
 
 ---
 
