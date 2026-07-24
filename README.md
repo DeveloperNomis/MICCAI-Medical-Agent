@@ -30,21 +30,12 @@ The hybrid agent decomposes spatial medical image QA into explicit and auditable
 6. deterministic geometric verification,
 7. binary answer formatting and audit logging.
 
-The external prompt follows the same binary protocol as the direct VLM baselines:
+The direct VLM baselines receive the same image and question directly and are prompted to output exactly one binary character:
 
 ```text
-This is a 2D axial CT slice.
-
-Question: {question}
-
-Answer the question with exactly one character:
-1 if the statement is true.
-0 if the statement is false.
-
-Do not output any explanation.
+1 = Yes
+0 = No
 ```
-
-The key idea is that the external interface remains comparable to a conventional VLM, while the hybrid agent internally performs explicit tool-based verification.
 
 ---
 
@@ -63,35 +54,21 @@ spatial-relation-verification-agent/
 │
 ├── code/
 │   ├── README.md
-│   │
 │   ├── hybrid_agent/
 │   │   ├── README.md
 │   │   ├── agent_eval.py
-│   │   ├── main.py
-│   │   ├── agent/
-│   │   ├── language_parsing/
-│   │   ├── perception/
-│   │   ├── tasks/
-│   │   └── utils/
-│   │
+│   │   └── main.py
 │   ├── evaluation/
 │   │   ├── README.md
 │   │   ├── final_evaluate_agent.py
 │   │   └── final_evaluate_agent_failure_attribution.py
-│   │
 │   └── vlm_baselines/
 │       ├── README.md
-│       ├── run_direct_vlm_baseline.py
-│       └── evaluate_direct_vlm_outputs.py
+│       ├── run_vlm_baseline.py
+│       └── evaluate_vlm_outputs.py
 │
 ├── training/
-│   ├── README.md
-│   ├── create_dataset_structure.py
-│   ├── extend_labelsTraining.py
-│   ├── extend_labelsTraining_ClassMapping.py
-│   ├── extend_trainingData.py
-│   ├── generate_gray_yolo_IDs.py
-│   └── generate_labels.py
+│   └── README.md
 │
 └── docs/
     ├── data_preparation.md
@@ -103,12 +80,13 @@ spatial-relation-verification-agent/
 
 ## What is not included
 
-The following files are not included in this repository:
+This repository intentionally excludes medical data, checkpoints, generated predictions, logs, and cluster-specific scripts.
+
+Not included:
 
 ```text
-data/images/
-data/labels/
-data/relations/
+data/
+datasets/
 models/
 results/
 runs/
@@ -117,20 +95,13 @@ logs/
 *.pth
 *.ckpt
 *.safetensors
+*.nii
+*.nii.gz
+*.dcm
+*.zip
 ```
 
-In particular, the repository does not include:
-
-- original medical images,
-- segmentation masks,
-- YOLO label files derived from medical data,
-- benchmark ground-truth files,
-- trained detector checkpoints,
-- VLM checkpoints,
-- generated prediction files,
-- logs or cluster-specific outputs.
-
-These files must be provided locally by the user.
+Users must provide local data, model checkpoints, and output directories.
 
 ---
 
@@ -145,24 +116,16 @@ git clone https://github.com/<anonymous>/<repo-name>.git
 cd <repo-name>
 ```
 
-Create and activate a virtual environment:
+Create and activate the hybrid-agent environment:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-```
 
-Install the hybrid-agent dependencies:
-
-```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 python -m spacy download en_core_web_sm
-```
 
-Set the Python path:
-
-```bash
 export PYTHONPATH=$PWD/code:$PYTHONPATH
 ```
 
@@ -186,7 +149,7 @@ print("cuda available:", torch.cuda.is_available())
 PY
 ```
 
-The direct VLM baseline environment is installed separately because it may require additional inference backends such as vLLM:
+For direct VLM baselines, use the separate VLM environment:
 
 ```bash
 python -m venv .venv-vlm
@@ -196,7 +159,7 @@ pip install --upgrade pip
 pip install -r requirements-vlm.txt
 ```
 
-The direct VLM environment requires a CUDA-capable Linux setup compatible with vLLM. Depending on the local CUDA driver and hardware, users may need to adapt the PyTorch or vLLM installation commands.
+The VLM environment requires a CUDA-capable Linux setup compatible with vLLM. Depending on the local CUDA driver, GPU type, PyTorch version, and vLLM version, users may need to adapt the PyTorch or vLLM installation commands.
 
 ---
 
@@ -223,35 +186,35 @@ A typical local layout is:
 └── qa.json
 ```
 
-Set the corresponding local paths before running inference:
+Set:
 
 ```bash
 export ORG_GT_PATH=/path/to/MIRP_Benchmark/RQ1/qa.json
 export IMG_DIR=/path/to/MIRP_Benchmark/RQ1/images
-export OUTPUT_DIR=/path/to/output
 ```
 
-More detailed instructions for preparing the local data structure, configuring paths, and preparing YOLO detector data are provided in:
+More details are provided in:
 
 ```text
 docs/data_preparation.md
+docs/data_format.md
 ```
 
 ---
 
 ## Required local files
 
-Before running inference or evaluation, provide the following local files.
+Before running inference or evaluation, provide the following local paths:
 
 | Variable | Description |
 |---|---|
-| `DATA_YAML_PATH` | Local YOLO `data.yaml` file with detector class names |
-| `YOLO_WEIGHTS_PATH` | Local trained YOLO detector checkpoint, e.g. `best.pt` |
+| `DATA_YAML_PATH` | local YOLO `data.yaml` file with detector class names |
+| `YOLO_WEIGHTS_PATH` | local trained YOLO detector checkpoint, e.g. `best.pt` |
 | `ORG_GT_PATH` | MIRP-style QA file, e.g. `RQ1/qa.json` |
-| `IMG_DIR` | Directory containing the corresponding CT slice images |
-| `OUTPUT_DIR` | Directory where predictions and evaluation outputs will be written |
-| `LOCAL_LLM_MODEL` | Local or Hugging Face model identifier for the agent language component |
-| `JOB_ID` | Run identifier used in output filenames |
+| `IMG_DIR` | directory containing the corresponding CT slice images |
+| `OUTPUT_DIR` | directory where predictions and evaluation outputs will be written |
+| `LOCAL_LLM_MODEL` | local or Hugging Face model identifier for the agent language component |
+| `JOB_ID` | run identifier used in output filenames |
 
 An example YOLO data configuration is provided in:
 
@@ -287,100 +250,11 @@ runs/detect/train/weights/best.pt
 
 Set `YOLO_WEIGHTS_PATH` to that local file.
 
-Optional: if an anonymized detector checkpoint is made available separately, place the download link here and set `YOLO_WEIGHTS_PATH` to the downloaded checkpoint.
-
 ---
 
-## Model checkpoints and VLM identifiers
+## Quickstart: hybrid-agent inference
 
-The repository does not include trained checkpoints or downloaded VLM weights.
-
-For hybrid-agent inference, provide:
-
-| Component | How to configure |
-|---|---|
-| YOLO detector | set `YOLO_WEIGHTS_PATH=/path/to/best.pt` |
-| Agent language model | set `LOCAL_LLM_MODEL=/path/to/model` or a Hugging Face model identifier |
-
-For direct VLM baselines, the model is passed through the `--model_path` argument.
-
-Example Qwen2-VL:
-
-```bash
---model_path Qwen/Qwen2-VL-7B-Instruct
-```
-
-Example MedGemma:
-
-```bash
---model_path google/medgemma-4b-it
-```
-
-Depending on the model license and access settings, users may need to authenticate with Hugging Face before downloading or running the model.
-
----
-
-## Configuration
-
-Set all paths explicitly before running the hybrid agent. No Slurm script is required.
-
-```bash
-export PROJECT_ROOT=$PWD
-export PYTHONPATH=$PWD/code:$PYTHONPATH
-
-export DATA_YAML_PATH=/path/to/yolo_dataset/data.yaml
-export YOLO_WEIGHTS_PATH=/path/to/best.pt
-
-export ORG_GT_PATH=/path/to/MIRP_Benchmark/RQ1/qa.json
-export IMG_DIR=/path/to/MIRP_Benchmark/RQ1/images
-export OUTPUT_DIR=/path/to/output/hybrid_agent
-
-export LOCAL_LLM_MODEL=google/medgemma-4b-it
-export JOB_ID=run
-```
-
-`LOCAL_LLM_MODEL` can be either a Hugging Face model identifier or a local model path, for example:
-
-```bash
-export LOCAL_LLM_MODEL=google/medgemma-4b-it
-```
-
-or:
-
-```bash
-export LOCAL_LLM_MODEL=/path/to/local/medgemma-4b-it
-```
-
----
-
-## Running the hybrid agent
-
-### Single-case demo
-
-The script `code/hybrid_agent/main.py` provides a lightweight single-case demo.
-
-```bash
-export PROJECT_ROOT=$PWD
-export PYTHONPATH=$PWD/code:$PYTHONPATH
-
-export DATA_YAML_PATH=/path/to/yolo_dataset/data.yaml
-export YOLO_WEIGHTS_PATH=/path/to/best.pt
-export LOCAL_LLM_MODEL=google/medgemma-4b-it
-
-export IMAGE_PATH=/path/to/example_image.png
-export QUESTION="Is the liver left of the spleen?"
-export OUTPUT_DIR=/path/to/output/single_case
-
-mkdir -p "$OUTPUT_DIR"
-
-python code/hybrid_agent/main.py
-```
-
-This script is intended for quick testing and debugging. It is not used to compute the paper metrics.
-
-### Benchmark inference
-
-The script `code/hybrid_agent/agent_eval.py` runs the hybrid agent on the spatial QA benchmark.
+Set the required paths:
 
 ```bash
 export PROJECT_ROOT=$PWD
@@ -397,7 +271,11 @@ export LOCAL_LLM_MODEL=google/medgemma-4b-it
 export JOB_ID=run
 
 mkdir -p "$OUTPUT_DIR"
+```
 
+Run benchmark inference:
+
+```bash
 python code/hybrid_agent/agent_eval.py
 ```
 
@@ -410,11 +288,17 @@ agent_spatial_summary_<JOB_ID>.json
 agent_spatial_errors_<JOB_ID>.json
 ```
 
+For single-case debugging, see:
+
+```text
+code/hybrid_agent/README.md
+```
+
 ---
 
-## Evaluation
+## Quickstart: hybrid-agent evaluation
 
-After running hybrid-agent inference, compute the final metrics:
+After inference, compute the final metrics:
 
 ```bash
 export PROJECT_ROOT=$PWD
@@ -431,83 +315,26 @@ mkdir -p "$OUTPUT_DIR"
 python code/evaluation/final_evaluate_agent.py
 ```
 
-This computes:
-
-- strict accuracy,
-- valid-only accuracy,
-- precision,
-- recall,
-- F1,
-- invalid outputs,
-- wrong cases.
-
-Invalid, missing, failed, or non-binary outputs are counted as incorrect under strict evaluation.
-
----
-
-## Failure attribution
-
-The hybrid agent stores intermediate information for each case, enabling stage-wise error analysis.
-
-Run:
+Run stage-wise failure attribution:
 
 ```bash
-export PROJECT_ROOT=$PWD
-export PYTHONPATH=$PWD/code:$PYTHONPATH
-export JOB_ID=run
-
-export ORG_GT_PATH=/path/to/MIRP_Benchmark/RQ1/qa.json
-export IMG_DIR=/path/to/MIRP_Benchmark/RQ1/images
-export PREDICTIONS_JSONL=/path/to/output/hybrid_agent/agent_spatial_predictions_<JOB_ID>.jsonl
-export OUTPUT_DIR=/path/to/output/evaluation
-
-mkdir -p "$OUTPUT_DIR"
-
 python code/evaluation/final_evaluate_agent_failure_attribution.py
 ```
 
-Failure stages:
+More details are provided in:
 
-| Failure stage | Description |
-|---|---|
-| Question extraction | The full prompt could not be converted into the core spatial question. |
-| Routing | The query was routed to the wrong task pathway. |
-| Parsing / query extraction | The wrong entity or relation was extracted. |
-| Ontology matching | An extracted entity could not be mapped to a detector class. |
-| Missing detection | At least one queried anatomical structure was not detected. |
-| Imprecise localization | A detected center was too imprecise for the relation. |
-| Geometry ambiguity | The spatial configuration was borderline or ambiguous. |
-| Formatting/runtime | The system produced an invalid output or failed during execution. |
-
-Failure attribution assigns each wrong or invalid prediction to the earliest identifiable failing stage.
+```text
+code/evaluation/README.md
+docs/evaluation.md
+```
 
 ---
 
-## Direct VLM baselines
+## Quickstart: direct VLM baselines
 
-Direct VLM baselines are evaluated in a separate environment because they may require additional inference backends such as vLLM.
+Direct VLM baselines are evaluated without YOLO, tool use, or deterministic geometry.
 
-Direct VLM baseline scripts are located in:
-
-```text
-code/vlm_baselines/
-```
-
-The folder contains the direct VLM inference script and the corresponding evaluation script:
-
-```text
-code/vlm_baselines/run_direct_vlm_baseline.py
-code/vlm_baselines/evaluate_direct_vlm_outputs.py
-```
-
-The direct baselines use the same external binary prompt protocol as the hybrid agent.
-
-The final evaluated direct baselines are:
-
-- MedGemma direct,
-- Qwen2-VL direct.
-
-### Configure input data
+Set the local MIRP paths:
 
 ```bash
 export IMAGE_DIR=/path/to/MIRP_Benchmark/RQ1/images
@@ -517,92 +344,61 @@ export OUTPUT_DIR=/path/to/output/vlm_baselines
 mkdir -p "$OUTPUT_DIR"
 ```
 
-### Run Qwen2-VL direct baseline
-
-Example using a Hugging Face model identifier:
+Example Qwen2-VL run:
 
 ```bash
-python code/vlm_baselines/run_direct_vlm_baseline.py \
+python code/vlm_baselines/run_vlm_baseline.py \
   --model_path Qwen/Qwen2-VL-7B-Instruct \
   --image_dir "$IMAGE_DIR" \
   --qa_file "$QA_FILE" \
   --output_root "$OUTPUT_DIR" \
   --model_name qwen2vl_direct \
+  --tokenizer_mode auto \
   --temperature 0 \
   --max_tokens 1 \
   --dtype auto \
   --trust_remote_code
 ```
 
-Example using a local checkpoint:
+Example MedGemma run:
 
 ```bash
-python code/vlm_baselines/run_direct_vlm_baseline.py \
-  --model_path /path/to/Qwen2-VL-7B-Instruct \
-  --image_dir "$IMAGE_DIR" \
-  --qa_file "$QA_FILE" \
-  --output_root "$OUTPUT_DIR" \
-  --model_name qwen2vl_direct \
-  --temperature 0 \
-  --max_tokens 1 \
-  --dtype auto \
-  --trust_remote_code
-```
-
-### Run MedGemma direct baseline
-
-Example using a Hugging Face model identifier:
-
-```bash
-python code/vlm_baselines/run_direct_vlm_baseline.py \
+python code/vlm_baselines/run_vlm_baseline.py \
   --model_path google/medgemma-4b-it \
   --image_dir "$IMAGE_DIR" \
   --qa_file "$QA_FILE" \
   --output_root "$OUTPUT_DIR" \
   --model_name medgemma_direct \
+  --tokenizer_mode auto \
   --temperature 0 \
   --max_tokens 1 \
   --dtype auto \
   --trust_remote_code
 ```
 
-Example using a local checkpoint:
+Evaluate direct VLM outputs:
 
 ```bash
-python code/vlm_baselines/run_direct_vlm_baseline.py \
-  --model_path /path/to/medgemma-4b-it \
-  --image_dir "$IMAGE_DIR" \
-  --qa_file "$QA_FILE" \
-  --output_root "$OUTPUT_DIR" \
-  --model_name medgemma_direct \
-  --temperature 0 \
-  --max_tokens 1 \
-  --dtype auto \
-  --trust_remote_code
-```
-
-### Evaluate direct VLM outputs
-
-```bash
-python code/vlm_baselines/evaluate_direct_vlm_outputs.py \
+python code/vlm_baselines/evaluate_vlm_outputs.py \
   --results_path "$OUTPUT_DIR" \
   --output_dir "$OUTPUT_DIR/evaluation"
 ```
 
-Expected output files:
+Tokenizer mode and vLLM options can be model-specific. For Qwen2-VL, if `--tokenizer_mode auto` does not load correctly in the local vLLM version, retry with:
 
-```text
-direct_vlm_evaluation_summary.json
-direct_vlm_evaluation_summary.csv
-direct_vlm_evaluation_summary.xlsx
-direct_vlm_invalid_cases.json
+```bash
+--tokenizer_mode qwen_vl
 ```
 
-Generated VLM predictions and evaluation outputs are not included in this repository.
+More details are provided in:
+
+```text
+code/vlm_baselines/README.md
+```
 
 ---
 
-## YOLO detector training utilities
+## YOLO detector training
 
 Optional detector data-preparation utilities are provided in:
 
@@ -610,34 +406,11 @@ Optional detector data-preparation utilities are provided in:
 training/
 ```
 
-These scripts were used to prepare YOLO-style detector training data from segmentation-derived annotations.
+The original CT images, segmentation masks, YOLO labels, and trained detector checkpoints are not included.
 
-The original CT images, segmentation masks, labels, and trained detector checkpoints are not included.
+The best detector configuration used standard YOLOv8 training settings without a custom hyperparameter YAML file.
 
-The best detector configuration used standard YOLOv8 training settings without a custom hyperparameter YAML file. Exploratory custom hyperparameter files are not included because they were not used for the final reported configuration.
-
-### Expected YOLO dataset layout
-
-```text
-/path/to/yolo_dataset/
-├── images/
-│   ├── train/
-│   ├── val/
-│   └── test/
-├── labels/
-│   ├── train/
-│   ├── val/
-│   └── test/
-└── data.yaml
-```
-
-An example configuration is provided in:
-
-```text
-configs/data.example.yaml
-```
-
-### Example YOLO training command
+Example training command:
 
 ```bash
 yolo detect train \
@@ -651,13 +424,11 @@ yolo detect train \
 
 Adjust `model`, `batch`, `epochs`, and hardware-specific settings as needed.
 
-After training, set:
+For details, see:
 
-```bash
-export YOLO_WEIGHTS_PATH=/path/to/runs/detect/train/weights/best.pt
+```text
+training/README.md
 ```
-
-This checkpoint is required for hybrid-agent inference.
 
 ---
 
@@ -726,6 +497,21 @@ Accuracy and F1 are reported in percent. Invalid outputs are counted as incorrec
 - Patient-level separation is enforced between detector training data and held-out evaluation cases.
 - Generated outputs, logs, checkpoints, and medical data are intentionally excluded from the repository.
 - Cluster-specific Slurm scripts are not included. The commands above can be run directly after setting the required environment variables.
+
+---
+
+## Additional documentation
+
+| File | Content |
+|---|---|
+| `code/README.md` | overview of the code folder |
+| `code/hybrid_agent/README.md` | hybrid-agent execution and configuration |
+| `code/vlm_baselines/README.md` | direct VLM baseline inference and evaluation |
+| `code/evaluation/README.md` | hybrid-agent evaluation and failure attribution |
+| `training/README.md` | YOLO detector training utilities |
+| `docs/data_preparation.md` | data download and preparation |
+| `docs/data_format.md` | expected local data format |
+| `docs/evaluation.md` | evaluation protocol |
 
 ---
 
