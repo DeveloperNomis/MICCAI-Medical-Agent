@@ -258,9 +258,7 @@ export YOLO_WEIGHTS_PATH=$PWD/checkpoints/yolo_detector_best.pt
 
 If you want to use a different detector checkpoint, set `YOLO_WEIGHTS_PATH` to your local checkpoint path instead.
 
-If no checkpoint is available, a detector can be trained using the instructions in `training/README.md`.
-
-If no checkpoint is available, train a detector first using the instructions in:
+If you want to train a detector yourself, follow the instructions in:
 
 ```text
 training/README.md
