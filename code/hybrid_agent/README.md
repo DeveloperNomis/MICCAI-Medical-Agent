@@ -11,7 +11,7 @@ export PROJECT_ROOT=/path/to/repo
 export PYTHONPATH=$PROJECT_ROOT/code:$PYTHONPATH
 
 export DATA_YAML_PATH=/path/to/yolo_dataset/data.yaml
-export YOLO_WEIGHTS_PATH=/path/to/yolo_detector_best.pt
+export YOLO_WEIGHTS_PATH=$PROJECT_ROOT/checkpoints/yolo_detector_best.pt
 
 export ORG_GT_PATH=/path/to/MIRP_Benchmark/RQ1/qa.json
 export IMG_DIR=/path/to/MIRP_Benchmark/RQ1/images
@@ -20,6 +20,8 @@ export OUTPUT_DIR=/path/to/output/hybrid_agent
 export LOCAL_LLM_MODEL=google/medgemma-4b-it
 export JOB_ID=run
 ```
+
+To use a different compatible detector checkpoint, set `YOLO_WEIGHTS_PATH` to that local checkpoint instead.
 
 ## Single-case demo
 
