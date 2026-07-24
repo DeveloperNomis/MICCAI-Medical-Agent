@@ -247,7 +247,7 @@ Hybrid-agent inference requires a trained YOLO detector checkpoint.
 The checkpoint is not included in this repository. Provide a local checkpoint and set:
 
 ```bash
-export YOLO_WEIGHTS_PATH=/path/to/best.pt
+export YOLO_WEIGHTS_PATH=/path/to/yolo_detector_best.pt
 ```
 
 If no checkpoint is available, train a detector first using the instructions in:
@@ -275,7 +275,7 @@ export PROJECT_ROOT=$PWD
 export PYTHONPATH=$PWD/code:$PYTHONPATH
 
 export DATA_YAML_PATH=/path/to/yolo_dataset/data.yaml
-export YOLO_WEIGHTS_PATH=/path/to/best.pt
+export YOLO_WEIGHTS_PATH=/path/to/yolo_detector_best.pt
 
 export ORG_GT_PATH=/path/to/MIRP_Benchmark/RQ1/qa.json
 export IMG_DIR=/path/to/MIRP_Benchmark/RQ1/images

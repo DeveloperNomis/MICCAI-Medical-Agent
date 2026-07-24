@@ -51,7 +51,7 @@ class AgentController:
         if yolo_weights_path is None:
             raise EnvironmentError(
                 "YOLO_WEIGHTS_PATH is required. Set it to a local YOLO checkpoint, e.g.:\n"
-                "export YOLO_WEIGHTS_PATH=/path/to/best.pt"
+                "export YOLO_WEIGHTS_PATH=/path/to/yolo_detector_best.pt"
             )
         
         yolo_weights_path = Path(yolo_weights_path)

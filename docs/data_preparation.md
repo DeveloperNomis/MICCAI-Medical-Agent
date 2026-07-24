@@ -84,7 +84,7 @@ Set:
 
 ```bash
 export DATA_YAML_PATH=/path/to/yolo_dataset/data.yaml
-export YOLO_WEIGHTS_PATH=/path/to/best.pt
+export YOLO_WEIGHTS_PATH=/path/to/yolo_detector_best.pt
 ```
 
 ## Files excluded from Git

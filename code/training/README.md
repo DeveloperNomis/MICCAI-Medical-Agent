@@ -74,7 +74,7 @@ Adjust `model`, `batch`, `epochs`, and hardware-specific settings as needed.
 After training, set:
 
 ```bash
-export YOLO_WEIGHTS_PATH=/path/to/runs/detect/train/weights/best.pt
+export YOLO_WEIGHTS_PATH=/path/to/runs/detect/train/weights/yolo_detector_best.pt
 ```
 
 This checkpoint is required for hybrid-agent inference.
