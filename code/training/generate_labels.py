@@ -107,11 +107,11 @@ def main():
     print(f"\nDone. Created {created_files} label files.")
 
     # Save class list.
-    with open(f"{DATASET_DIR}/yolo_classes.txt", "w", encoding="utf-8") as f:
+    with open(f"{DATASET_DIR}/yolo_classes_example.txt", "w", encoding="utf-8") as f:
         for cls in class_names:
             f.write(cls + "\n")
 
-    print("Class list saved to dataset/yolo_classes.txt.")
+    print("Class list saved to dataset/yolo_classes_example.txt.")
 
 
 if __name__ == "__main__":

@@ -1,40 +1,100 @@
-# Python
+# ---------------------------------------------------------------------
+# Python environments and cache files
+# ---------------------------------------------------------------------
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
 .venv/
+venv/
 env/
+conda/
 *.egg-info/
+.eggs/
+build/
+dist/
 
-# Logs
+# ---------------------------------------------------------------------
+# Local environment variables and secrets
+# ---------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# ---------------------------------------------------------------------
+# Logs and cluster outputs
+# ---------------------------------------------------------------------
 logs/
 slurm_log/
 *.log
 *.out
 *.err
 
-# Data
+# ---------------------------------------------------------------------
+# Medical data, datasets, and annotations
+# ---------------------------------------------------------------------
 data/
 datasets/
-images/
-labels/
+MIRP_Benchmark/
+mirp_benchmark/
+
 *.nii
 *.nii.gz
 *.dcm
 *.zip
+*.tar
+*.tar.gz
+*.7z
 
-# Model checkpoints
+# ---------------------------------------------------------------------
+# Model checkpoints and local model folders
+# ---------------------------------------------------------------------
+models/
+checkpoints/
+weights/
+other_Language_Models/
+pixtral-12b/
+pixtral-12b-finetuned/
+
 *.pt
 *.pth
 *.ckpt
 *.safetensors
+*.onnx
+*.engine
 
-# YOLO / experiment outputs
+# ---------------------------------------------------------------------
+# YOLO, VLM, and experiment outputs
+# ---------------------------------------------------------------------
 runs/
 wandb/
+results/
 outputs/
 predictions/
+inference_outputs/
 
-# IDE / OS
+# ---------------------------------------------------------------------
+# Jupyter / notebooks
+# ---------------------------------------------------------------------
+.ipynb_checkpoints/
+
+# ---------------------------------------------------------------------
+# Test and tool caches
+# ---------------------------------------------------------------------
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# ---------------------------------------------------------------------
+# IDE / OS files
+# ---------------------------------------------------------------------
 .idea/
 .vscode/
 .DS_Store
+Thumbs.db
+
+# ---------------------------------------------------------------------
+# Optional Slurm scripts/templates
+# ---------------------------------------------------------------------
+scripts/slurm/
+*.sbatch
