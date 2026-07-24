@@ -498,6 +498,7 @@ Most remaining errors arise from perception-related failures, especially impreci
 ```text
 docs/evaluation.md
 code/evaluation/README.md
+```
 
 ## Reproducibility notes
 
