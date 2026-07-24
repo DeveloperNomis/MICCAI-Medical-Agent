@@ -478,6 +478,27 @@ Accuracy and F1 are reported in percent. Invalid outputs are counted as incorrec
 
 ---
 
+## Failure attribution summary
+
+For the best-performing hybrid-agent configuration, Qwen2-VL + hybrid agent, the 55 incorrect cases were assigned to the earliest identifiable failing stage.
+
+| Failure stage | Cases | Share |
+|---|---:|---:|
+| Question extraction | 0 | 0.0 |
+| Routing | 0 | 0.0 |
+| Parsing / query extraction | 15 | 27.3 |
+| Ontology matching | 0 | 0.0 |
+| Missing detection | 12 | 21.8 |
+| Imprecise localization | 28 | 50.9 |
+| Geometry ambiguity | 0 | 0.0 |
+| Formatting/runtime | 0 | 0.0 |
+
+Most remaining errors arise from perception-related failures, especially imprecise localization and missing detections. Full details and the evaluation protocol are described in:
+
+```text
+docs/evaluation.md
+code/evaluation/README.md
+
 ## Reproducibility notes
 
 - All systems use the same external binary prompt protocol.
