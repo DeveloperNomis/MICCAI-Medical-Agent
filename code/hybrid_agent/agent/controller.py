@@ -42,17 +42,25 @@ class AgentController:
             data_yaml_path
             or os.environ.get(
                 "DATA_YAML_PATH",
-                project_root / "data/data.example.yaml",
+                project_root / "configs/data.example.yaml",
             )
         )
-
-        yolo_weights_path = Path(
-            yolo_weights_path
-            or os.environ.get(
-                "YOLO_WEIGHTS_PATH",
-                project_root / "models/yolo/best.pt",
+        
+        yolo_weights_path = yolo_weights_path or os.environ.get("YOLO_WEIGHTS_PATH")
+        
+        if yolo_weights_path is None:
+            raise EnvironmentError(
+                "YOLO_WEIGHTS_PATH is required. Set it to a local YOLO checkpoint, e.g.:\n"
+                "export YOLO_WEIGHTS_PATH=/path/to/best.pt"
             )
-        )
+        
+        yolo_weights_path = Path(yolo_weights_path)
+        
+        if not data_yaml_path.exists():
+            raise FileNotFoundError(f"DATA_YAML_PATH does not exist: {data_yaml_path}")
+        
+        if not yolo_weights_path.exists():
+            raise FileNotFoundError(f"YOLO_WEIGHTS_PATH does not exist: {yolo_weights_path}")
 
         self.class_names = load_class_names_from_yaml(str(data_yaml_path))
 
