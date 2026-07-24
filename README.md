@@ -244,11 +244,21 @@ Replace the `path` field in that file with the local YOLO dataset root before tr
 
 Hybrid-agent inference requires a trained YOLO detector checkpoint.
 
-The checkpoint is not included in this repository. Provide a local checkpoint and set:
+A trained YOLO detector checkpoint is provided at:
+
+```text
+checkpoints/yolo_detector_best.pt
+```
+
+Set:
 
 ```bash
-export YOLO_WEIGHTS_PATH=/path/to/yolo_detector_best.pt
+export YOLO_WEIGHTS_PATH=$PWD/checkpoints/yolo_detector_best.pt
 ```
+
+If you want to use a different detector checkpoint, set `YOLO_WEIGHTS_PATH` to your local checkpoint path instead.
+
+If no checkpoint is available, a detector can be trained using the instructions in `training/README.md`.
 
 If no checkpoint is available, train a detector first using the instructions in:
 
