@@ -51,7 +51,7 @@ The key idea is that the external interface remains comparable to a conventional
 ## Repository structure
 
 ```text
-.
+
 spatial-relation-verification-agent/
 ├── README.md
 ├── requirements.txt
