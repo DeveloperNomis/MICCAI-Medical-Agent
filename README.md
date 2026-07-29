@@ -477,9 +477,9 @@ Main results under the unified prompt protocol:
 
 | System | Accuracy | F1 | Invalid |
 |---|---:|---:|---:|
-| MedGemma direct | 51.8 | 67.2 | 0.0 |
+| MedGemma | 51.8 | 67.2 | 0.0 |
 | MedGemma + hybrid agent | 91.6 | 91.3 | 0.0 |
-| Qwen2-VL direct | 51.6 | 56.8 | 0.0 |
+| Qwen2-VL | 51.6 | 56.8 | 0.0 |
 | Qwen2-VL + hybrid agent | **94.1** | **94.2** | 0.0 |
 
 Accuracy and F1 are reported in percent. Invalid outputs are counted as incorrect under strict evaluation.
