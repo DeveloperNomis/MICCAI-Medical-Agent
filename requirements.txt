@@ -10,7 +10,7 @@ langchain-text-splitters==0.2.4
 langsmith==0.1.147
 matplotlib==3.10.7
 numpy==1.26.4
-opencv-python==4.12.0.88
+opencv-python==4.11.0.86
 openpyxl==3.1.5
 pandas
 pillow==12.0.0
