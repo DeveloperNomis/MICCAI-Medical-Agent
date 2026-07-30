@@ -542,21 +542,6 @@ code/evaluation/README.md
 
 ---
 
-## Citation
-
-If you use this code, please cite:
-
-```bibtex
-@inproceedings{anonymous2026modular,
-  title={A Modular Medical Imaging Agent for Reliable and Auditable Spatial Relation Verification in CT Scans},
-  author={Anonymous},
-  booktitle={MICCAI Agent Workshop},
-  year={2026}
-}
-```
-
----
-
 ## License
 
 This repository is released for research use.
