@@ -315,11 +315,14 @@ For the hybrid agent, set the local language model with:
 export LOCAL_LLM_MODEL=$PWD/models/medgemma-4b-it
 ```
 
-Alternatively, use the Hugging Face model ID directly:
+Alternatively, use a Hugging Face model ID directly:
 
 ```bash
 export LOCAL_LLM_MODEL=google/medgemma-4b-it
 ```
+
+This requires internet access or a cached local copy, and the model must be
+compatible with the current `LocalLLM` backend.
 
 For the direct VLM baselines, pass the checkpoint through `--model_path`, for
 example:
@@ -360,7 +363,11 @@ export ORG_GT_PATH=/path/to/MIRP_Benchmark/RQ1/qa.json
 export IMG_DIR=/path/to/MIRP_Benchmark/RQ1/images
 export OUTPUT_DIR=/path/to/output/hybrid_agent
 
+
+# Local Hugging Face / Transformers-compatible model used by the hybrid agent.
+# This must be loadable by the current LocalLLM backend and cannot be a .gguf file.
 export LOCAL_LLM_MODEL=google/medgemma-4b-it
+
 export JOB_ID=run
 
 mkdir -p "$OUTPUT_DIR"
