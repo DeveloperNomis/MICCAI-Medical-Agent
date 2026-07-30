@@ -549,43 +549,6 @@ These folders are ignored by `.gitignore`.
 
 ---
 
-## Results
-
-Main results under the unified prompt protocol:
-
-| System | Accuracy | F1 | Invalid |
-|---|---:|---:|---:|
-| MedGemma | 51.8 | 67.2 | 0.0 |
-| MedGemma + hybrid agent | 91.6 | 91.3 | 0.0 |
-| Qwen2-VL | 51.6 | 56.8 | 0.0 |
-| Qwen2-VL + hybrid agent | **94.1** | **94.2** | 0.0 |
-
-Accuracy and F1 are reported in percent. Invalid outputs are counted as incorrect under strict evaluation.
-
----
-
-## Failure attribution summary
-
-For the best-performing hybrid-agent configuration, Qwen2-VL + hybrid agent, the 55 incorrect cases were assigned to the earliest identifiable failing stage.
-
-| Failure stage | Cases | Share |
-|---|---:|---:|
-| Question extraction | 0 | 0.0 |
-| Routing | 0 | 0.0 |
-| Parsing / query extraction | 15 | 27.3 |
-| Ontology matching | 0 | 0.0 |
-| Missing detection | 12 | 21.8 |
-| Imprecise localization | 28 | 50.9 |
-| Geometry ambiguity | 0 | 0.0 |
-| Formatting/runtime | 0 | 0.0 |
-
-Most remaining errors arise from perception-related failures, especially imprecise localization and missing detections. Full details and the evaluation protocol are described in:
-
-```text
-docs/evaluation.md
-code/evaluation/README.md
-```
-
 ## Reproducibility notes
 
 - All systems use the same external binary prompt protocol.
@@ -612,14 +575,6 @@ code/evaluation/README.md
 | `docs/data_preparation.md` | data download and preparation |
 | `docs/data_format.md` | expected local data format |
 | `docs/evaluation.md` | evaluation protocol |
-
----
-
-## License
-
-This repository is released for research use.
-
-Please check the licenses of all external datasets, pretrained models, and medical data sources before use.
 
 ---
 
