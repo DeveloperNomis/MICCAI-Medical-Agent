@@ -94,7 +94,8 @@ spatial-relation-verification-agent/
 
 ## What is not included
 
-This repository intentionally excludes medical data, checkpoints, generated predictions, logs, and cluster-specific scripts.
+This repository intentionally excludes generated predictions, logs, and cluster-specific scripts.
+The full extent of the used dataset is also excluded but a small cohort for demo purposes is provided.
 
 Not included:
 
@@ -179,9 +180,13 @@ The VLM environment requires a CUDA-capable Linux setup compatible with vLLM. De
 
 ## Data download and preparation
 
-The spatial QA benchmark data are not included in this repository.
+A small subset of the spatial QA benchmark data is provided for testing purposes:
 
-The benchmark data can be downloaded from the official MIRP Benchmark repository:
+```text
+./demo-data/MIRP_Benchmark/RQ1
+```
+
+The complete dataset should be downloaded from the official MIRP Benchmark repository:
 
 ```text
 https://github.com/Wolfda95/MIRP_Benchmark
@@ -189,7 +194,7 @@ https://github.com/Wolfda95/MIRP_Benchmark
 
 For this repository, the relevant local files are CT slice images and the corresponding binary spatial question-answer file.
 
-A typical local layout is:
+The local layout of data should follow:
 
 ```text
 /path/to/MIRP_Benchmark/RQ1/
@@ -218,7 +223,7 @@ docs/data_format.md
 
 ## Required local files
 
-Before running inference or evaluation, provide the following local paths:
+Before running inference or evaluation, provide the following local paths as environment variables:
 
 | Variable | Description |
 |---|---|
