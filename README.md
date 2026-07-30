@@ -279,6 +279,72 @@ Set `YOLO_WEIGHTS_PATH` to that local file.
 
 ---
 
+## VLM and local LLM checkpoints
+
+Large VLM checkpoints are not included in this repository. To reproduce the
+reported experiments, download the required Hugging Face checkpoints manually or
+let the scripts load them from Hugging Face by using the model ID.
+
+Example Hugging Face model IDs:
+
+```text
+google/medgemma-4b-it
+Qwen/Qwen2-VL-7B-Instruct
+```
+
+MedGemma may require logging in to Hugging Face and accepting the model terms.
+
+To download checkpoints locally:
+
+```bash
+pip install -U huggingface_hub
+huggingface-cli login
+
+mkdir -p models
+
+huggingface-cli download google/medgemma-4b-it \
+  --local-dir models/medgemma-4b-it
+
+huggingface-cli download Qwen/Qwen2-VL-7B-Instruct \
+  --local-dir models/qwen2-vl-7b-instruct
+```
+
+For the hybrid agent, set the local language model with:
+
+```bash
+export LOCAL_LLM_MODEL=$PWD/models/medgemma-4b-it
+```
+
+Alternatively, use the Hugging Face model ID directly:
+
+```bash
+export LOCAL_LLM_MODEL=google/medgemma-4b-it
+```
+
+For the direct VLM baselines, pass the checkpoint through `--model_path`, for
+example:
+
+```bash
+python code/vlm_baselines/run_vlm_baseline.py \
+  --model_path $PWD/models/qwen2-vl-7b-instruct \
+  --image_dir "$IMAGE_DIR" \
+  --qa_file "$QA_FILE" \
+  --output_root "$OUTPUT_DIR" \
+  --model_name qwen2vl_direct \
+  --tokenizer_mode auto \
+  --temperature 0 \
+  --max_tokens 1 \
+  --dtype auto \
+  --trust_remote_code
+```
+
+GGUF models downloaded through LM Studio are not supported by the default code
+path. The hybrid agent uses Hugging Face Transformers via `LOCAL_LLM_MODEL`, and
+the direct VLM baselines expect Hugging Face / vLLM-compatible checkpoints via
+`--model_path`.
+
+---
+
 ## Quickstart: hybrid-agent inference
 
 Set the required paths:
