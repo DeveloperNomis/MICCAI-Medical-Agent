@@ -1,10 +1,10 @@
 # A Modular Medical Imaging Agent for Reliable and Auditable Spatial Relation Verification in CT Scans
 
-Code for the MICCAI Agent Workshop submission:
+## MICCAI 2026 Agentic AI for Medicine Workshop Paper
 
-**A Modular Medical Imaging Agent for Reliable and Auditable Spatial Relation Verification in CT Scans**
+This repository implements a modular agent for binary spatial relation verification in axial CT slices.
 
-This repository implements a modular medical imaging agent for binary spatial relation verification in axial CT slices.
+<br>
 
 Given a CT slice and a question such as:
 
@@ -14,7 +14,21 @@ Is the liver left of the spleen?
 
 the system extracts a structured spatial query, localizes the queried anatomical structures with a YOLO-based detector, and verifies the spatial relation using deterministic geometric rules.
 
-The final spatial decision is not directly predicted by a vision-language model. Instead, the language model is used for language/query handling, while the final answer is computed from detected object centers.
+<br><br>
+
+<table>
+<tr><td>
+
+### Main Findings
+
+- While VLMs fail to understand spatial relations in CT images, we show that a tool-using agent can reliably verify them, reaching 94.1% accuracy on the [MIRP Benchmark](https://huggingface.co/datasets/Wolfda95/MIRP_Your_Other_Left) where VLMs remain near chance level. 
+- Such an agent can be a building block for future systems that write radiological reports, where spatial understanding is an absolute prerequisite. 
+- Beyond accuracy, the agent is auditable (you see exactly where it goes wrong), and its modular pipeline can be extended with further tools and specialized models for other tasks on which VLMs fail.
+
+</td></tr>
+</table>
+
+<br><br>
 
 ---
 
