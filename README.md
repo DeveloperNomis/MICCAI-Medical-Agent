@@ -595,3 +595,10 @@ These folders are ignored by `.gitignore`.
 ## Acknowledgements
 
 This work builds on open-source tools including YOLOv8, Transformers, LangChain, spaCy, PyTorch, and vLLM.
+
+# Contact
+Simon Vincent Abel: nemo.basil12@gmail.com
+
+Ayhan Can Erdur: can.erdur@tum.de
+
+Daniel Santak Wolf: daniel.wolf@uni-ulm.de
